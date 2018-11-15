@@ -12,10 +12,21 @@ class SynAttr():
         self.type_of_class = type_of_class
         self.attribute_name = attribute_name
 
-    def equation(self, name, expression):
+    def equation(self, name, attribute):
         self.name = name
-        self.expression = expression
+        self.attribute = attribute
 
+class InhAttr():
+    def __init__(self, type_of_class, attribute_name):
+        self.type_of_class = type_of_class
+        self.attribute_name = attribute_name
+
+class InhEq():
+    def __init__(self, class_type, name, attribute):
+        self.class_type = class_type
+        self.name = name
+        self.attribute = attribute
+        setattr(class_type, name, attribute)
 
 class MinTree():
     """
@@ -28,73 +39,95 @@ class MinTree():
     """
 
     def __init__(self):
+
         #Declare attributes
-        self.leaf = SynAttr("Leaf", "localmin")
-        self.pair = SynAttr("Pair", "localmin")
+
+        #Global min attribute
+        self.globalMinLeaf = InhAttr(Leaf, "globalmin")
+        self.globalMinPair = InhAttr(Pair, "globalmin")
+
+        #First Argument is the node that
+        self.globalMin     = InhEq(Program, 'globalmin', lambda x : 42)
+
+        #Local min attributes
+        self.program = SynAttr(Program, "localmin")
+        self.leaf = SynAttr(Leaf, "localmin")
+        self.pair = SynAttr(Pair, "localmin")
 
         #Define their equations
-        self.leaf.equation('localmin', 'Leaf.value') #The right most argument here means that we have to evaluate a python expression
-        #self.pair.equation('localmin', 'min(Pair.left.value, Pair.right.value)') #This is an example of an expression that we want to be able to parse.
-        self.pair.equation('localmin', '42')
+        self.leaf.equation('localmin', lambda x : x.value)
+        self.pair.equation('localmin', lambda x : min(x.left.localmin() , x.right.localmin()))
+        self.program.equation('localmin', lambda x : 0)
 
-        #@TODO: Everything between these lines should be automated, and not be a concern for the user.
-        self.attribute_dict = {}
-
-        self.attribute_dict['Leaf']  = self.leaf
-        self.attribute_dict['Pair']  = self.pair
-
-    def get_attribute_dict(self):
-        return self.attribute_dict
-        #######################################################
 
 class Weaver:
     """
     This is the class that weaves together the attribute grammar with a tree.
-
-    Note, this is a rough first draft.
     """
 
-    def __init__(self, class_to_weave, attribute_class):
-        self.instance = class_to_weave
+    def __init__(self, attribute_class):
         self.attribute_class = attribute_class() #An instance of the user defined attribute class
 
+        #Get all declared self variables from the attribute class and add them to a list so that we can iterate over them
+        self.synthesized_list_of_attribute_declarations = [] #@TODO which data structure should I be?
+        self.inherited_list_of_attribute_declarations = [] #@TODO which data structure should I be?
+        for _, value in vars(self.attribute_class).items():
+            if isinstance(value,SynAttr):
+                self.synthesized_list_of_attribute_declarations.append(value)
+            elif isinstance(value,InhAttr):
+                self.inherited_list_of_attribute_declarations.append(value)
 
-    def evaluate_expression(self, node, expression):
-        """
-        This function later has to be expanded to a full blown parser/evaluator
-        that can handle Python expressions.
+    def traverse_upwards_tree_for_inh_equation(self, reference_to_child, name_of_attribute, next_parent):
 
-        Right not it was simply crudly implemented to handle straight numbers and direct members of the node reference.
-        (That is in jastadd for example, node.minvalue = node.value, where node.value was defined when constructing the ast)
-        """
+        visited = set()
 
-        #this is a very crude implementation for now just to demonstrate that this works.
-        expr = expression.expression
-        if expr.isdigit():
-            return int(expr)
-        else:
-            import collections
-            qualified_members = collections.deque(expr.split('.')) #the idea here is simply that we split on '.' to find children
-            qualified_members.popleft() #Throw away the reference to oneself
-            field_to_retrieve = qualified_members.popleft() #Note this only works for with a single dot for now, since we assume this pop brings a string.
-            ret = getattr(node, field_to_retrieve)
-            return int(ret)
+        def traversal_closure(reference_to_child, name_of_attribute, next_parent):
+
+            for current_parent in next_parent:
+                if name_of_attribute in vars(current_parent):
+                    return vars(current_parent)[name_of_attribute]
+
+                elif current_parent not in visited:
+                    visited.add(current_parent)
+                    ref = reference_to_child
+                    name = name_of_attribute
+                    current_par = current_parent.get_parent_class()
+                    function = traversal_closure(ref, name, current_par)
+                    return function
+
+        return traversal_closure(reference_to_child, name_of_attribute, next_parent)
 
 
     def traverse_and_inject(self):
-        #This implementation requires that the tree has
-        #a traversal algorithm that exposes each node.
-        attribute_dict = self.attribute_class.get_attribute_dict()
-        for node in self.instance.traverse():
+        """
+        This function traverses all Attribute Declarations and injects them into the tree.
+        """
 
-            #We look at the name of the class if it matches any class name in synthesized attributes, we evaluate the equation to and add the attr. to the node.
-            if node.__class__.__name__ in attribute_dict:
-                name_of_attribute = attribute_dict[node.__class__.__name__].attribute_name #Get attribute name
-                evaluated_expression = self.evaluate_expression(node,attribute_dict[node.__class__.__name__]) #Evaluate the expression
-                self.to_be_injected(node, name_of_attribute, evaluated_expression) #inject the attribute into the tree.
+        #Synthesized attributes
+        for attribute_declaration in self.synthesized_list_of_attribute_declarations:
 
-    def to_be_injected(self, node, name_of_attribute, attribute):
-        #1st arg is a class instance
+            class_reference = attribute_declaration.type_of_class #Get a reference to the class that is to be attributed
+            name_of_attribute = attribute_declaration.attribute_name #Get attribute name
+            function_to_be_injected = attribute_declaration.attribute #Get the attribute
+
+            self.inject(class_reference, name_of_attribute, function_to_be_injected) #inject the attribute into the tree.
+
+        #Inherited attributes
+        for attribute_declaration in self.inherited_list_of_attribute_declarations:
+
+            class_reference = attribute_declaration.type_of_class
+            name_of_attribute = attribute_declaration.attribute_name
+
+            attribute = self.traverse_upwards_tree_for_inh_equation(class_reference, name_of_attribute, class_reference.get_parent_class())
+
+            print(attribute)
+
+            self.inject(class_reference, name_of_attribute, attribute)
+
+
+
+    def inject(self, node, name_of_attribute, attribute):
+        #1st arg is a class
         #2nd arg is name of attribute
         #3rd arg is the attribute to be set
         setattr(node, name_of_attribute, attribute)
@@ -152,30 +185,48 @@ class Node(ABC):
     def __init__(self):
         super().__init__()
 
+    def get_parent_class():
+        return [Pair, Program]
+
 class Pair(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
+    def get_children(self):
+        return [self.left, self.right]
+
+    def get_parent_class():
+        return [Pair, Program]
 
 class Leaf(Node):
     def __init__(self, value):
         self.value = value
 
+    def get_children(self):
+        return []
+
+    def get_parent_class():
+        return [Pair]
+
 
 if __name__ == '__main__':
+
+    #Instance of the weaver class
+    weaver = Weaver(MinTree) #Just give the reference to the RAG class
+    weaver.traverse_and_inject()
+
     #an instance of this class
     instance = Program(Pair(Leaf(1), Pair(Leaf(2), Leaf(3))))
 
-    #Instance of the weaver class
-    weaver = Weaver(instance, MinTree) #Note here that we can simply give it a reference to the class MinTree!
-
-    weaver.traverse_and_inject()
-
     allnodes = instance.traverse() #this simply gets all the nodes in the tree after the tree has been attributed, so one can print the nodes to check the result.
 
+    print(allnodes)
+
+    #print(allnodes[0].globalmin())
+
     for item in allnodes:
-        try:
-            print(str(item), item.localmin)
-        except Exception as e:
-            pass
+        print(str(item), item.localmin())
+
+    for item in allnodes:
+        print(str(item), item.globalmin())
