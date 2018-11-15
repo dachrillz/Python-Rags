@@ -1,3 +1,10 @@
+########################################################
+#
+# LIBRARY STUFF!
+#
+########################################################
+
+
 class SynAttr():
     '''
     This class is the Synthesized Attribute Class.
@@ -27,37 +34,6 @@ class InhEq():
         self.name = name
         self.attribute = attribute
         setattr(class_type, name, attribute)
-
-class MinTree():
-    """
-    This is a class that defines the attributes we want to give to the a tree.
-
-    That is, this is the class where one defines the reference attribute grammar.
-    This is also the class we expect the user to define!
-
-    The user of this package Declares attributes, and then Defines equations for these attributes.
-    """
-
-    def __init__(self):
-
-        #Declare attributes
-
-        #Global min attribute
-        self.globalMinLeaf = InhAttr(Leaf, "globalmin")
-        self.globalMinPair = InhAttr(Pair, "globalmin")
-
-        #First Argument is the node that
-        self.globalMin     = InhEq(Program, 'globalmin', lambda x : 42)
-
-        #Local min attributes
-        self.program = SynAttr(Program, "localmin")
-        self.leaf = SynAttr(Leaf, "localmin")
-        self.pair = SynAttr(Pair, "localmin")
-
-        #Define their equations
-        self.leaf.equation('localmin', lambda x : x.value)
-        self.pair.equation('localmin', lambda x : min(x.left.localmin() , x.right.localmin()))
-        self.program.equation('localmin', lambda x : 0)
 
 
 class Weaver:
@@ -132,7 +108,49 @@ class Weaver:
         #3rd arg is the attribute to be set
         setattr(node, name_of_attribute, attribute)
 
+########################################################
+#
+# USER STUFF!
+#
+########################################################
 
+#########################################################
+#
+# The RAG specification
+#
+##########################################################
+
+
+class MinTree():
+    """
+    This is a class that defines the attributes we want to give to the a tree.
+
+    That is, this is the class where one defines the reference attribute grammar.
+    This is also the class we expect the user to define!
+
+    The user of this package Declares attributes, and then Defines equations for these attributes.
+    """
+
+    def __init__(self):
+
+        #Declare attributes
+
+        #Global min attribute
+        self.globalMinLeaf = InhAttr(Leaf, "globalmin")
+        self.globalMinPair = InhAttr(Pair, "globalmin")
+
+        #First Argument is the node that
+        self.globalMin     = InhEq(Program, 'globalmin', lambda x : 42)
+
+        #Local min attributes
+        self.program = SynAttr(Program, "localmin")
+        self.leaf = SynAttr(Leaf, "localmin")
+        self.pair = SynAttr(Pair, "localmin")
+
+        #Define their equations
+        self.leaf.equation('localmin', lambda x : x.value)
+        self.pair.equation('localmin', lambda x : min(x.left.localmin() , x.right.localmin()))
+        self.program.equation('localmin', lambda x : 0)
 
 #########################################################
 #
@@ -180,6 +198,7 @@ class Program:
         return result
 
 
+
 class Node(ABC):
 
     def __init__(self):
@@ -209,6 +228,11 @@ class Leaf(Node):
     def get_parent_class():
         return [Pair]
 
+#########################################################
+#
+# MAIN AND DRIVER CODE!
+#
+##########################################################
 
 if __name__ == '__main__':
 
