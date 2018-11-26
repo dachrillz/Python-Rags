@@ -12,7 +12,6 @@ class AttributeContainer:
     by the user
     """
 
-
     inherited_dictionary = {}
 
 
@@ -27,8 +26,17 @@ def inh(type_of_class, attribute_name):
     AttributeContainer.inherited_dictionary[str(type_of_class)] = (type_of_class, attribute_name)
 
 
-def eq(type_of_class, attribute_name, equation):
-    setattr(type_of_class, attribute_name, equation)
+def eq(type_of_class, attribute_name, equation, child=None):
+    if child is None:
+        setattr(type_of_class, attribute_name, equation)
+    else:
+        # if the equation gives a child, we know that this is an equation that is to be inherited
+        if hasattr(type_of_class, "equation_container"):
+            type_of_class.equation_container[child] = (attribute_name, equation)
+        else:
+            equation_container = dict()
+            equation_container[child] = (attribute_name, equation)
+            setattr(type_of_class, "equation_container", equation_container)
 
 
 class InhAttr:
@@ -54,10 +62,17 @@ class Weaver:
         visited = set()
 
         def traversal_closure(ref, name, next_par):
-
             for current_parent in next_par:
-                if name_of_attribute in vars(current_parent):
-                    return vars(current_parent)[name_of_attribute]
+
+                if hasattr(current_parent, 'equation_container'):
+                    if reference_to_child.__name__ in vars(current_parent)['equation_container']:
+                        if name_of_attribute == vars(current_parent)['equation_container'][reference_to_child.__name__][
+                            0]:
+                            return vars(current_parent)['equation_container'][reference_to_child.__name__][1]
+
+                    elif 'Child' in vars(current_parent)['equation_container']:
+                        if name_of_attribute == vars(current_parent)['equation_container']['Child'][0]:
+                            return vars(current_parent)['equation_container']['Child'][1]
 
                 elif current_parent not in visited:
                     visited.add(current_parent)
@@ -66,6 +81,18 @@ class Weaver:
                     return attr
 
         return traversal_closure(reference_to_child, name_of_attribute, next_parent)
+
+    @staticmethod
+    def inheritors(class_):
+        subclasses = set()
+        work = [class_]
+        while work:
+            parent = work.pop()
+            for child in parent.__subclasses__():
+                if child not in subclasses:
+                    subclasses.add(child)
+                    work.append(child)
+        return subclasses
 
     def traverse_and_inject(self):
         """
@@ -81,3 +108,14 @@ class Weaver:
                                                                     class_reference.get_parent_class())
 
             setattr(class_reference, name_of_attribute, attribute)
+
+            # This gets all classes that inherit from a certain class
+            # This is used to attribute Left and Right, when Left:A Right:A
+            all_child_classes = Weaver.inheritors(class_reference)
+
+            for class_reference in all_child_classes:
+
+                attribute = self.traverse_upwards_tree_for_inh_equation(class_reference, name_of_attribute,
+                                                                        class_reference.get_parent_class())
+
+                setattr(class_reference, name_of_attribute, attribute)

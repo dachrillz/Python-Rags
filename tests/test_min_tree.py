@@ -8,7 +8,8 @@ from library import inh, eq, syn, Weaver
 # Grammar Specification
 #################################################
 
-class MinTree():
+
+class MinTree:
     """
     This is a class that defines the attributes we want to give to the a tree.
 
@@ -22,11 +23,10 @@ class MinTree():
         # Declare attributes
 
         # Global min attribute
-        inh(Leaf, "globalmin")
-        inh(Pair, "globalmin")
+        inh(Node, "globalmin")
 
-        # First Argument is the node that
-        eq(Program, 'globalmin', lambda x: 42)
+        # First Argument is the node that is to contain the equation
+        eq(Program, 'globalmin', lambda x: 42, 'Node')
 
         # Local min attributes
         syn(Program, "localmin")
@@ -86,30 +86,34 @@ class Node(ABC):
     def __init__(self):
         super().__init__()
 
-
+    @staticmethod
     def get_parent_class():
         return [Pair, Program]
 
 
 class Pair(Node):
     def __init__(self, left, right):
+        super().__init__()
         self.left = left
         self.right = right
 
     def get_children(self):
         return [self.left, self.right]
 
+    @staticmethod
     def get_parent_class():
         return [Pair, Program]
 
 
 class Leaf(Node):
     def __init__(self, value):
+        super().__init__()
         self.value = value
 
     def get_children(self):
         return []
 
+    @staticmethod
     def get_parent_class():
         return [Pair]
 
@@ -134,7 +138,9 @@ class MinTreeTest(TestCase):
     def test_global_min(self):
 
         for item in self.allnodes:
-            self.assertEqual(item.globalmin(), 42)
+            if not isinstance(item, Program):
+                print(item)
+                self.assertEqual(item.globalmin(), 42)
 
     def test_local_min(self):
 
