@@ -1,30 +1,48 @@
 # README #
 
+## Installation
 
-This README would normally document whatever steps are necessary to get your application up and running.
+The library itself is written in pure python and does not need any external libraries.
 
-### What is this repository for? ###
+However if one whiches to run the tests this can be done using pytest. 
+If this is not available on your computer. Simply do the following.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+1. run the install.sh script
+2. activate the environment using: 'source venv/bin/activate'
 
-### How do I get set up? ###
+## Running the tests 
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+Using pytest, simply write pytest in the terminal to run all the tests.
 
-### Contribution guidelines ###
+## Example
 
-* Writing tests
-* Code review
-* Other guidelines
+1. The repository comes with a simple example included to help you get started.
+2. To run the example simply cd into the example folder an run the example.py file using Python 3
 
-### Who do I talk to? ###
+## Using the library
 
-* Repo owner or admin
-* Other community or team contact
+1. Simply import the file called library.py into any python 3 project you wish and run 
+as a normal python program.
+
+
+## Licence 
+
+-------
+This repository is covered by the license BSD 2-clause, see file LICENSE.
+
+## Credits
+
+-------
+The way this library works is heavily inspired by Jast Add:
+
+- homepage: [Jast Add](http://jastadd.org/web/)
+
+Many of the test cases in this project are taken directly from the implementation of the Jast Add Library.
+
+- repository: [Test Inspiration](https://bitbucket.org/jastadd/jastadd-test/src/master/)
+
+## Tagging
+
+---
+
+This is an Alpha Version

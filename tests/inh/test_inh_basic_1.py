@@ -1,8 +1,6 @@
 from unittest import TestCase
 
-from abc import ABC
-
-from library import inh, eq, syn, Weaver
+from src.library import inh, eq, Weaver
 
 #################################################
 # Grammar Specification
@@ -16,8 +14,10 @@ class RAG:
 
         inh(Node, "inhAttr")
 
+
         eq(Root, "inhAttr", lambda n: -1, 'Node')
-        eq(Root, "inhAttr", lambda n: 0, 'Child')
+        eq(Node, "inhAttr", lambda n: 0, 'Child')
+
 
 
 #################################################

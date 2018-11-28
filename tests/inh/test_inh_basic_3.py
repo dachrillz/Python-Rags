@@ -1,8 +1,6 @@
 from unittest import TestCase
 
-from abc import ABC
-
-from library import inh, eq, syn, Weaver
+from src.library import inh, eq, Weaver
 
 #################################################
 # Grammar Specification

@@ -1,8 +1,7 @@
-from unittest import TestCase
-
 from abc import ABC
 
 from src.library import inh, eq, syn, Weaver
+
 
 #################################################
 # Grammar Specification
@@ -42,6 +41,8 @@ class MinTree:
 #################################################
 # Tree Specification
 #################################################
+
+#  This part of the code specifies a Python Tree that we want to attribute
 
 
 class Program:
@@ -100,7 +101,6 @@ class Pair(Node):
     def get_children(self):
         return [self.left, self.right]
 
-
     @staticmethod
     def get_parent_class():
         return [Pair, Program]
@@ -120,14 +120,14 @@ class Leaf(Node):
 
 
 #################################################
-# Test Classes
+# Driver Code
 #################################################
 
 
-class MinTreeTest(TestCase):
+class MinTreeExample:
 
-    def setUp(self):
-        weaver = Weaver(MinTree) # Just give the reference to the RAG class
+    def __init__(self):
+        weaver = Weaver(MinTree)  # Just give the reference to the RAG class
         instance = Program(Pair(Leaf(1), Pair(Leaf(2), Leaf(3))))
 
         # simply get all the nodes in tree after attribution, so one can get the nodes to check the result.
@@ -136,26 +136,23 @@ class MinTreeTest(TestCase):
         # Instance of the weaver class
         weaver.traverse_and_inject()
 
-    def test_global_min(self):
+    def print_global_min(self):
 
         for item in self.allnodes:
             if not isinstance(item, Program):
                 print(item)
-                self.assertEqual(item.globalmin(), 42)
+                print(item.globalmin())
 
-    def test_local_min(self):
-
+    def print_local_min(self):
         for i in range(len(self.allnodes)):
+            print(self.allnodes[i].localmin())
 
-            if i is 0:
-               self.assertEqual(0, self.allnodes[i].localmin())
-            elif i is 1:
-                self.assertEqual(1, self.allnodes[i].localmin())
-            elif i is 2:
-                self.assertEqual(1, self.allnodes[i].localmin())
-            elif i is 3:
-                self.assertEqual(2, self.allnodes[i].localmin())
-            elif i is 4:
-                self.assertEqual(2, self.allnodes[i].localmin())
-            elif i is 5:
-                self.assertEqual(3, self.allnodes[i].localmin())
+
+if __name__ == '__main__':
+    a = MinTreeExample()
+
+    print("Printing the global mins")
+    a.print_global_min()
+
+    print("Printing the local mins")
+    a.print_local_min()
