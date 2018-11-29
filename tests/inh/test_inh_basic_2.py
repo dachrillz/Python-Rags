@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from src.library import inh, eq, Weaver
 
+
 #################################################
 # Grammar Specification
 #################################################
@@ -14,7 +15,7 @@ class RAG:
 
         inh(Node, 'root')
 
-        eq(Root, 'root', lambda n: Root, 'Node')
+        eq(Root, 'root', lambda n: n)
 
 
 #################################################
@@ -29,9 +30,11 @@ class Root:
     def set_node(self, node):
         self.node = node
 
-    @staticmethod
-    def get_parent_class():
-        return []
+    def get_children(self):
+        if self.node is None:
+            return []
+        else:
+            return [self.node]
 
 
 class Node:
@@ -41,9 +44,12 @@ class Node:
     def set_node(self, node):
         self.node = node
 
-    @staticmethod
-    def get_parent_class():
-        return [Root, Node]
+    def get_children(self):
+        if self.node is None:
+            return []
+        else:
+            return [self.node]
+
 
 #################################################
 # Test Classes
@@ -53,13 +59,18 @@ class Node:
 class TestClass(TestCase):
 
     def setUp(self):
-        weaver = Weaver(RAG)
-        weaver.traverse_and_inject()
+        Weaver(RAG)
 
         self.root = Root()
         self.root.set_node(Node())
         self.root.node.set_node(Node())
 
-    def test_basic_inheritance1(self):
-        self.assertEqual(self.root.node.node.root(), Root)
+        Weaver.infer_parents(self.root)
 
+        self.root.node.node.root()
+
+        print(self.root.node.node.root())
+        print(self.root)
+
+    def test_basic_inheritance1(self):
+        self.assertEqual(self.root.node.node.root(), self.root)
