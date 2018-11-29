@@ -4,10 +4,10 @@ from abc import ABC
 
 from src.library import inh, eq, syn, Weaver
 
+
 #################################################
 # Grammar Specification
 #################################################
-
 
 class MinTree:
     """
@@ -26,7 +26,7 @@ class MinTree:
         inh(Node, "globalmin")
 
         # First Argument is the node that is to contain the equation
-        eq(Program, 'globalmin', lambda x: 42, 'Node')
+        eq(Program, 'globalmin', lambda n: 42)
 
         # Local min attributes
         syn(Program, "localmin")
@@ -80,15 +80,14 @@ class Program:
 
         return result
 
+    def get_children(self):
+        return [self.node]
+
 
 class Node(ABC):
 
     def __init__(self):
         super().__init__()
-
-    @staticmethod
-    def get_parent_class():
-        return [Pair, Program]
 
 
 class Pair(Node):
@@ -101,11 +100,6 @@ class Pair(Node):
         return [self.left, self.right]
 
 
-    @staticmethod
-    def get_parent_class():
-        return [Pair, Program]
-
-
 class Leaf(Node):
     def __init__(self, value):
         super().__init__()
@@ -113,10 +107,6 @@ class Leaf(Node):
 
     def get_children(self):
         return []
-
-    @staticmethod
-    def get_parent_class():
-        return [Pair]
 
 
 #################################################
@@ -127,20 +117,18 @@ class Leaf(Node):
 class MinTreeTest(TestCase):
 
     def setUp(self):
-        weaver = Weaver(MinTree) # Just give the reference to the RAG class
+        Weaver(MinTree)  # Just give the reference to the RAG class
         instance = Program(Pair(Leaf(1), Pair(Leaf(2), Leaf(3))))
+
+        Weaver.infer_parents(instance)
 
         # simply get all the nodes in tree after attribution, so one can get the nodes to check the result.
         self.allnodes = instance.traverse()
-
-        # Instance of the weaver class
-        weaver.traverse_and_inject()
 
     def test_global_min(self):
 
         for item in self.allnodes:
             if not isinstance(item, Program):
-                print(item)
                 self.assertEqual(item.globalmin(), 42)
 
     def test_local_min(self):
@@ -148,7 +136,7 @@ class MinTreeTest(TestCase):
         for i in range(len(self.allnodes)):
 
             if i is 0:
-               self.assertEqual(0, self.allnodes[i].localmin())
+                self.assertEqual(0, self.allnodes[i].localmin())
             elif i is 1:
                 self.assertEqual(1, self.allnodes[i].localmin())
             elif i is 2:

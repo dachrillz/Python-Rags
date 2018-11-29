@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from src.library import inh, eq, Weaver
 
+
 #################################################
 # Grammar Specification
 #################################################
@@ -14,10 +15,8 @@ class RAG:
 
         inh(Node, "inhAttr")
 
-
-        eq(Root, "inhAttr", lambda n: -1, 'Node')
-        eq(Node, "inhAttr", lambda n: 0, 'Child')
-
+        eq(Root, "inhAttr", lambda n: -1)
+        eq(Node, "inhAttr", lambda n: 0)
 
 
 #################################################
@@ -32,9 +31,8 @@ class Root:
     def set_node(self, node):
         self.node = node
 
-    @staticmethod
-    def get_parent_class():
-        return []
+    def get_children(self):
+        return [self.node]
 
 
 class Node:
@@ -44,9 +42,12 @@ class Node:
     def set_node(self, node):
         self.node = node
 
-    @staticmethod
-    def get_parent_class():
-        return [Root, Node]
+    def get_children(self):
+        if self.node is None:
+            return []
+        else:
+            return [self.node]
+
 
 #################################################
 # Test Classes
@@ -54,14 +55,20 @@ class Node:
 
 
 class TestClass(TestCase):
+    """
+    Test inspiration: https://bitbucket.org/jastadd/jastadd-test/src/master/tests/inh/basic_01p/
+    """
 
     def setUp(self):
         weaver = Weaver(RAG)
-        weaver.traverse_and_inject()
 
         self.root = Root()
         self.root.set_node(Node())
         self.root.node.set_node(Node())
+
+        Weaver.infer_parents(self.root)
+
+        self.root.node.node.inhAttr()
 
     def test_basic_inheritance1(self):
         self.assertEqual(self.root.node.node.inhAttr(), 0)
