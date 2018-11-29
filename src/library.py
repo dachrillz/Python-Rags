@@ -114,8 +114,24 @@ class Weaver:
             all_child_classes = Weaver.inheritors(class_reference)
 
             for class_reference in all_child_classes:
-
                 attribute = self.traverse_upwards_tree_for_inh_equation(class_reference, name_of_attribute,
                                                                         class_reference.get_parent_class())
 
                 setattr(class_reference, name_of_attribute, attribute)
+
+    def infer_parents(self, root_of_tree):
+        """
+        Assumes that each node has a function called get_children,
+        which returns a list of each child
+        :param root_of_tree:
+        :return:
+        """
+
+        def inorder_traversal(node):
+            children = node.get_children()
+            if len(children) is not 0:
+                for child in children:
+                    setattr(child, "get_parent", lambda: node)
+                    inorder_traversal(child)
+
+        inorder_traversal(root_of_tree)
