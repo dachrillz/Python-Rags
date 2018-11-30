@@ -17,9 +17,8 @@ else:
     first_arg = sys.argv[1]
 
     if first_arg == 'test':
-        import pytest
-
-        pytest.main()
+        import subprocess
+        subprocess.Popen("pytest")
 
     elif first_arg == 'example':
         example.run_example()
