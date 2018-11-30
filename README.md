@@ -17,7 +17,7 @@ Using pytest, simply write pytest in the terminal to run all the tests.
 ## Example
 
 1. The repository comes with a simple example included to help you get started.
-2. To run the example simply cd into the example folder an run the example.py file using Python 3
+2. To run the example simply run the main.py file from the root folder using Python 3
 
 ## Using the library
 

@@ -7,7 +7,6 @@ from src.library import inh, eq, syn, Weaver
 # Grammar Specification
 #################################################
 
-
 class MinTree:
     """
     This is a class that defines the attributes we want to give to the a tree.
@@ -25,7 +24,7 @@ class MinTree:
         inh(Node, "globalmin")
 
         # First Argument is the node that is to contain the equation
-        eq(Program, 'globalmin', lambda x: 42, 'Node')
+        eq(Program, 'globalmin', lambda n: 42)
 
         # Local min attributes
         syn(Program, "localmin")
@@ -41,8 +40,6 @@ class MinTree:
 #################################################
 # Tree Specification
 #################################################
-
-#  This part of the code specifies a Python Tree that we want to attribute
 
 
 class Program:
@@ -81,15 +78,14 @@ class Program:
 
         return result
 
+    def get_children(self):
+        return [self.node]
+
 
 class Node(ABC):
 
     def __init__(self):
         super().__init__()
-
-    @staticmethod
-    def get_parent_class():
-        return [Pair, Program]
 
 
 class Pair(Node):
@@ -101,10 +97,6 @@ class Pair(Node):
     def get_children(self):
         return [self.left, self.right]
 
-    @staticmethod
-    def get_parent_class():
-        return [Pair, Program]
-
 
 class Leaf(Node):
     def __init__(self, value):
@@ -113,10 +105,6 @@ class Leaf(Node):
 
     def get_children(self):
         return []
-
-    @staticmethod
-    def get_parent_class():
-        return [Pair]
 
 
 #################################################
@@ -127,20 +115,21 @@ class Leaf(Node):
 class MinTreeExample:
 
     def __init__(self):
-        weaver = Weaver(MinTree)  # Just give the reference to the RAG class
-        instance = Program(Pair(Leaf(1), Pair(Leaf(2), Leaf(3))))
+
+        Weaver(MinTree)  # Just give the reference to the RAG class
+        instance = Program(Pair(Leaf(1), Pair(Leaf(2), Leaf(3)))) # Create an instance of the tree
+
+        Weaver.infer_parents(instance) #Infer parents for the tree
 
         # simply get all the nodes in tree after attribution, so one can get the nodes to check the result.
         self.allnodes = instance.traverse()
 
         # Instance of the weaver class
-        weaver.traverse_and_inject()
 
     def print_global_min(self):
 
         for item in self.allnodes:
             if not isinstance(item, Program):
-                print(item)
                 print(item.globalmin())
 
     def print_local_min(self):
@@ -148,8 +137,10 @@ class MinTreeExample:
             print(self.allnodes[i].localmin())
 
 
-if __name__ == '__main__':
+def run_example():
     a = MinTreeExample()
+
+    print("This is the same tree as in Assignment 3, from the Compiler Course")
 
     print("Printing the global mins")
     a.print_global_min()
