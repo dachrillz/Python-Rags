@@ -3,6 +3,7 @@
 # LIBRARY STUFF!
 #
 ########################################################
+from functools import lru_cache
 
 
 def syn(type_of_class, attribute_name, equation=None):
@@ -14,6 +15,7 @@ def syn(type_of_class, attribute_name, equation=None):
     :return:
     """
 
+    @lru_cache(maxsize=None)
     def lookup_function(self):
         closure_name = '__eq__' + attribute_name
 
@@ -30,6 +32,8 @@ def syn(type_of_class, attribute_name, equation=None):
 
 def inh(type_of_class, attribute_name):
     # We use closures to be able to pass the attribute_name into the function later
+
+    @lru_cache(maxsize=None)
     def get_function_from_parent(self, *args):
         closure_attribute = "__eq__" + attribute_name
         parent = self.get_parent()
@@ -48,7 +52,6 @@ def eq(type_of_class, attribute_name, equation):
 
     #If the parent class defins
     if hasattr(type_of_class.__bases__[0], attribute_name):
-        print(type_of_class)
         syn(type_of_class, attribute_name)
         setattr(type_of_class, attribute_name, equation)
     else:
