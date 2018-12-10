@@ -13,9 +13,14 @@ def syn(type_of_class, attribute_name, equation=None):
     :param equation:
     :return:
     """
+
     def lookup_function(self):
         closure_name = '__eq__' + attribute_name
-        return getattr(type_of_class, closure_name)(self)
+
+        if hasattr(self.__class__, closure_name):
+            return getattr(self.__class__, closure_name)(self)
+        else:
+            return getattr(type_of_class, closure_name)(self)
 
     if equation is None:
         setattr(type_of_class, attribute_name, lookup_function)
@@ -35,18 +40,21 @@ def inh(type_of_class, attribute_name):
             else:
                 return get_function_from_parent(parent)
 
-
     setattr(type_of_class, attribute_name, get_function_from_parent)
-
 
 
 def eq(type_of_class, attribute_name, equation):
     attribute_name = '__eq__' + attribute_name
 
-    setattr(type_of_class, attribute_name, equation)
+    #If the parent class defins
+    if hasattr(type_of_class.__bases__[0], attribute_name):
+        print(type_of_class)
+        syn(type_of_class, attribute_name)
+        setattr(type_of_class, attribute_name, equation)
+    else:
+        setattr(type_of_class, attribute_name, equation)
 
-    setattr(type_of_class, "defines", lambda self, n: hasattr(self, n))
-
+        setattr(type_of_class, "defines", lambda self, n: hasattr(self, n))
 
 
 class Weaver:

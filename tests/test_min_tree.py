@@ -26,17 +26,14 @@ class MinTree:
         inh(Node, "globalmin")
 
         # First Argument is the node that is to contain the equation
-        eq(Program, 'globalmin', lambda n: 42)
+        eq(Program, 'globalmin', lambda n: n.node.localmin())
 
         # Local min attributes
-        syn(Program, "localmin")
-        syn(Leaf, "localmin")
-        syn(Pair, "localmin")
+        syn(Node, "localmin")
 
         # Define their equations
         eq(Leaf, 'localmin', lambda x: x.value)
         eq(Pair, 'localmin', lambda x: min(x.left.localmin(), x.right.localmin()))
-        eq(Program, 'localmin', lambda x: 0)
 
 
 #################################################
@@ -129,15 +126,14 @@ class MinTreeTest(TestCase):
 
         for item in self.allnodes:
             if not isinstance(item, Program):
-                self.assertEqual(item.globalmin(), 42)
+                self.assertEqual(item.globalmin(), 1)
 
     def test_local_min(self):
 
         for i in range(len(self.allnodes)):
 
-            if i is 0:
-                self.assertEqual(0, self.allnodes[i].localmin())
-            elif i is 1:
+            if i is 1:
+                print(type(self.allnodes[i]))
                 self.assertEqual(1, self.allnodes[i].localmin())
             elif i is 2:
                 self.assertEqual(1, self.allnodes[i].localmin())

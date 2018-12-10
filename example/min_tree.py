@@ -24,7 +24,7 @@ class MinTree:
         inh(Node, "globalmin")
 
         # First Argument is the node that is to contain the equation
-        eq(Program, 'globalmin', lambda n: 42)
+        eq(Program, 'globalmin', lambda n: Program.node.localmin())
 
         # Local min attributes
         syn(Program, "localmin")
